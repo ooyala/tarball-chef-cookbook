@@ -1,0 +1,9 @@
+---
+driver:
+  name: vagrant
+
+suites:
+  - name: default
+    run_list:
+      - recipe[tarball::test]
+    attributes:
