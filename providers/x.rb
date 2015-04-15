@@ -53,13 +53,18 @@ def pax_handler(pax)
   Chef::Log.debug("PAX: #{pax}") if pax
 end
 
-def t_mkdir(tarball, entry, pax)
+def t_mkdir(tarball, entry, pax, name = nil)
   pax_handler(pax)
-  directory ::File.join(tarball.destination, entry.full_name).gsub(/\/$/, '') do
+  if name.nil?
+    dir = ::File.join(tarball.destination, entry.full_name).gsub(/\/$/, '')
+  else
+    dir = name
+  end
+  directory dir do
     action :create
     owner tarball.owner || entry.header.uid
     group tarball.group || entry.header.gid
-    mode fix_mode(entry.header.mode) & ~tarball.umask.to_i
+    mode { (fix_mode(entry.header.mode) | 0111) & ~tarball.umask.to_i }
     recursive true
   end
 end
@@ -86,11 +91,14 @@ def t_file(tarball, entry, pax, longname)
   pax_handler(pax)
   file_name = longname || entry.full_name
   Chef::Log.info "Creating file #{longname || entry.full_name}"
+  dir = ::File.dirname(::File.join(tarball.destination, file_name))
+  t_mkdir(tarball, entry, pax, dir) unless ::File.exist?(dir)
   file ::File.join(tarball.destination, file_name) do
     action :create
     owner tarball.owner || entry.header.uid
     group tarball.group || entry.header.gid
     mode fix_mode(entry.header.mode) & ~tarball.umask.to_i
+    sensitive true
     content entry.read
   end
   tarball.created_files << ::File.join(tarball.destination, file_name)
