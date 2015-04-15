@@ -1,0 +1,22 @@
+AllCops:
+  Exclude:
+    - 'Thorfile'
+    - 'metadata.rb'
+
+FileName:
+  Enabled: false
+
+AbcSize:
+  Max: 40
+
+MethodLength:
+  Max: 50
+
+Style/ClassAndModuleChildren:
+  Enabled: false
+
+CyclomaticComplexity:
+  Max: 12
+
+PerceivedComplexity:
+  Max: 8

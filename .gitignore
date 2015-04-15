@@ -1,7 +1,6 @@
 .kitchen.local.yml
 .kitchen/
 .rspec
-.rubocop.yml
 .vagrant
 Berksfile.lock
 Gemfile.lock
