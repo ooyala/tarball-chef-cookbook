@@ -18,7 +18,7 @@ cookbook_file 'testing.tgz' do
   action :create
 end
 
-tarball_x '/tmp/testing.tgz' do
+tarball '/tmp/testing.tgz' do
   destination '/tmp/testing1'
   owner 'root'
   group 'root'
