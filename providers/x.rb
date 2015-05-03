@@ -172,6 +172,10 @@ def fix_mode(mode)
   mode > 07777.to_i ? mode.to_s(8).slice(-4, 4).to_i(8) : mode
 end
 
+if self.respond_to?('provides')
+  provides :tarball
+end
+
 action :extract do
   tarball = new_resource
   Chef::Log.info "TARFILE: #{tarball.source || tarball.name}"

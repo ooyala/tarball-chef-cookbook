@@ -14,6 +14,10 @@
 actions :extract
 default_action :extract if defined?(default_action)
 
+if self.respond_to?('provides')
+  provides :tarball
+end
+
 def initialize(*args)
   super
   @created_files = created_files

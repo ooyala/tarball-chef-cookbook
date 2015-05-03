@@ -46,7 +46,8 @@ remote_file '/tmp/some_archive.tgz' do
   source 'http://example.com/some_archive.tgz'
 end
 
-tarball_x '/tmp/some_archive.tgz' do
+# I can also use tarball_x "file" do ...
+tarball '/tmp/some_archive.tgz' do
   destination '/opt/my_app_path'	# Will be created if missing
   owner 'root'
   group 'root'
@@ -62,7 +63,7 @@ begin/rescue.
 
 ```
 begin
-  tarball_x '/tarball_path.tgz/' do
+  tarball '/tarball_path.tgz/' do
     ...
   end
 rescue StandardError => e
