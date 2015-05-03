@@ -14,9 +14,7 @@
 actions :extract
 default_action :extract if defined?(default_action)
 
-if self.respond_to?('provides')
-  provides :tarball
-end
+provides :tarball if self.respond_to?('provides')
 
 def initialize(*args)
   super

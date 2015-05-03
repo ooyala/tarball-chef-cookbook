@@ -56,7 +56,7 @@ end
 def t_mkdir(tarball, entry, pax, name = nil)
   pax_handler(pax)
   if name.nil?
-    dir = ::File.join(tarball.destination, entry.full_name).gsub(/\/$/, '')
+    dir = ::File.join(tarball.destination, entry.full_name).gsub(%r{/$}, '')
   else
     dir = name
   end
@@ -172,9 +172,7 @@ def fix_mode(mode)
   mode > 07777.to_i ? mode.to_s(8).slice(-4, 4).to_i(8) : mode
 end
 
-if self.respond_to?('provides')
-  provides :tarball
-end
+provides :tarball if self.respond_to?('provides')
 
 action :extract do
   tarball = new_resource

@@ -37,7 +37,7 @@ describe 'tarball::test' do
 
   it 'removes /tmp/testing.tar' do
     expect(chef_run).to \
-        delete_file('testing.tar').with(path: '/tmp/testing.tar')
+      delete_file('testing.tar').with(path: '/tmp/testing.tar')
   end
 end
 
@@ -45,11 +45,11 @@ end
 describe 'tarball::test' do
   let(:chef_run) do
     ChefSpec::SoloRunner.new(
-        log_level: :error,
-        step_into: ['tarball_x']
-      ).converge(
-        described_recipe
-      )
+      log_level: :error,
+      step_into: ['tarball_x']
+    ).converge(
+      described_recipe
+    )
   end
 
   before do
@@ -58,11 +58,11 @@ describe 'tarball::test' do
     ::File.stub(:exists?).with('/tmp/testing.tar').and_return true
     ::File.stub(:open).and_call_original
     ::File.stub(:open).with('/tmp/testing.tgz', 'rb').and_return \
-        ::File.open(::File.join(::File.dirname(__FILE__),
-                                '../files/default/testing.tgz'), 'rb')
+      ::File.open(::File.join(::File.dirname(__FILE__),
+                              '../files/default/testing.tgz'), 'rb')
     ::File.stub(:open).with('/tmp/testing.tar', 'rb').and_return \
-        ::File.open(::File.join(::File.dirname(__FILE__),
-                                '../files/default/testing.tar'), 'rb')
+      ::File.open(::File.join(::File.dirname(__FILE__),
+                              '../files/default/testing.tar'), 'rb')
   end
 
   it 'creates extraction dirs' do
