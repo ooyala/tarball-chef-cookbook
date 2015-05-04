@@ -1,0 +1,6 @@
+language: ruby
+rvm:
+- 2.1.2
+script:
+- bundle exec rake style --trace
+- bundle exec rake spec --trace
