@@ -3,6 +3,8 @@ tarball
 
 Description: tar file extraction resource provider.
 
+[![Build Status](https://travis-ci.org/ooyala/tarball-chef-cookbook.svg?branch=master)](https://travis-ci.org/ooyala/tarball-chef-cookbook)
+
 Features
 --------
 * Does not rely on system tar (ruby only!)
