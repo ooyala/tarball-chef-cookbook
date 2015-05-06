@@ -21,14 +21,14 @@ end
 
 use_inline_resources
 
-def topen(tarfile)
+def t_open(tarfile)
   ::File.open(tarfile, 'rb')
 rescue StandardError => e
   Chef::Log.warn e.message
   raise e
 end
 
-def zstream(f)
+def t_stream(f)
   tgz = Zlib::GzipReader.new(f)
 rescue Zlib::GzipFile::Error
   # Not gzipped
@@ -38,7 +38,7 @@ else
   tgz
 end
 
-def destdir(tarball)
+def mkdestdir(tarball)
   directory tarball.destination do
     action :create
     owner tarball.owner
@@ -128,7 +128,7 @@ def wanted?(name, tarball, type)
   end
 end
 
-def extraction(tar, tarball)
+def t_extraction(tar, tarball)
   pax = nil
   longname = nil
   Gem::Package::TarReader.new(tar).each do |ent|
@@ -177,9 +177,9 @@ provides :tarball if self.respond_to?('provides')
 action :extract do
   tarball = new_resource
   Chef::Log.info "TARFILE: #{tarball.source || tarball.name}"
-  tar = topen(tarball.source || tarball.name)
-  tar = zstream(tar)
-  destdir(tarball)
-  extraction(tar, tarball)
+  tar = t_open(tarball.source || tarball.name)
+  tar = t_stream(tar)
+  mkdestdir(tarball)
+  t_extraction(tar, tarball)
   new_resource.updated_by_last_action(true)
 end
