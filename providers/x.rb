@@ -43,12 +43,15 @@ def mkdestdir(tarball)
     action :create
     owner tarball.owner
     group tarball.group
+    # We use octal here for UNIX file mode readability, but we could just
+    # as easily have used decimal 511 and gotten the correct behavior
     mode 0777 & ~tarball.umask.to_i
     recursive true
     tarball.updated_by_last_action(true)
   end
 end
 
+# Placeholder method in case someone actually needs PAX support
 def pax_handler(pax)
   Chef::Log.debug("PAX: #{pax}") if pax
 end
@@ -71,8 +74,12 @@ end
 
 def t_link(tarball, entry, type, pax, longname)
   pax_handler(pax)
-  target = (type == :symbolic ? entry.header.linkname :
-           ::File.join(tarball.destination, entry.header.linkname))
+  if type == :symbolic
+    target = entry.header.linkname
+  else
+    target = ::File.join(tarball.destination, entry.header.linkname)
+  end
+
   if type == :hard &&
      !(::File.exist?(target) || tarball.created_files.include?(target))
     Chef::Log.debug "Skipping #{entry.full_name}: #{target} not found"
@@ -90,7 +97,7 @@ end
 def t_file(tarball, entry, pax, longname)
   pax_handler(pax)
   file_name = longname || entry.full_name
-  Chef::Log.info "Creating file #{longname || entry.full_name}"
+  Chef::Log.info "Creating file #{file_name}"
   dir = ::File.dirname(::File.join(tarball.destination, file_name))
   t_mkdir(tarball, entry, pax, dir) unless ::File.exist?(dir)
   file ::File.join(tarball.destination, file_name) do
@@ -105,14 +112,10 @@ def t_file(tarball, entry, pax, longname)
 end
 
 def on_list?(name, tarball)
-  if tarball.extract_list.is_a?(String)
-    ::File.basename(name).match(Regexp.quote(tarball.extract_list))
-  elsif tarball.extract_list.is_a?(Array)
-    tarball.extract_list.each do |r|
-      return true if ::File.basename(name).match(Regexp.quote(r))
-    end
-    false
+  Array(tarball.extract_list).each do |r|
+    return true if ::File.basename(name).match(Regexp.quote(r))
   end
+  false
 end
 
 def wanted?(name, tarball, type)
@@ -129,6 +132,7 @@ def wanted?(name, tarball, type)
 end
 
 def t_extraction(tar, tarball)
+  # pax and longname track extended types that span more than one tar entry
   pax = nil
   longname = nil
   Gem::Package::TarReader.new(tar).each do |ent|
