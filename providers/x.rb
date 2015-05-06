@@ -74,6 +74,8 @@ end
 
 def t_link(tarball, entry, type, pax, longname)
   pax_handler(pax)
+  dir = tarball.destination
+  t_mkdir(tarball, entry, pax, dir) unless ::File.exist?(dir)
   if type == :symbolic
     target = entry.header.linkname
   else
@@ -98,7 +100,7 @@ def t_file(tarball, entry, pax, longname)
   pax_handler(pax)
   file_name = longname || entry.full_name
   Chef::Log.info "Creating file #{file_name}"
-  dir = ::File.dirname(::File.join(tarball.destination, file_name))
+  dir = tarball.destination
   t_mkdir(tarball, entry, pax, dir) unless ::File.exist?(dir)
   file ::File.join(tarball.destination, file_name) do
     action :create
