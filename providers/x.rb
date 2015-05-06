@@ -21,14 +21,14 @@ end
 
 use_inline_resources
 
-def topen(tarfile)
+def t_open(tarfile)
   ::File.open(tarfile, 'rb')
 rescue StandardError => e
   Chef::Log.warn e.message
   raise e
 end
 
-def zstream(f)
+def t_stream(f)
   tgz = Zlib::GzipReader.new(f)
 rescue Zlib::GzipFile::Error
   # Not gzipped
@@ -38,17 +38,20 @@ else
   tgz
 end
 
-def destdir(tarball)
+def mkdestdir(tarball)
   directory tarball.destination do
     action :create
     owner tarball.owner
     group tarball.group
+    # We use octal here for UNIX file mode readability, but we could just
+    # as easily have used decimal 511 and gotten the correct behavior
     mode 0777 & ~tarball.umask.to_i
     recursive true
     tarball.updated_by_last_action(true)
   end
 end
 
+# Placeholder method in case someone actually needs PAX support
 def pax_handler(pax)
   Chef::Log.debug("PAX: #{pax}") if pax
 end
@@ -69,29 +72,40 @@ def t_mkdir(tarball, entry, pax, name = nil)
   end
 end
 
+def get_target(tarball, entry, type)
+  if type == :symbolic
+    entry.header.linkname
+  else
+    ::File.join(tarball.destination, entry.header.linkname)
+  end
+end
+
 def t_link(tarball, entry, type, pax, longname)
   pax_handler(pax)
-  target = (type == :symbolic ? entry.header.linkname :
-           ::File.join(tarball.destination, entry.header.linkname))
+  dir = tarball.destination
+  t_mkdir(tarball, entry, pax, dir) unless ::File.exist?(dir)
+  target = get_target(tarball, entry, type)
+
   if type == :hard &&
      !(::File.exist?(target) || tarball.created_files.include?(target))
     Chef::Log.debug "Skipping #{entry.full_name}: #{target} not found"
-  else
-    src = ::File.join(tarball.destination, longname || entry.full_name)
-    link src do
-      to target
-      owner tarball.owner || entry.header.uid
-      link_type type
-      action :create
-    end
+    return
+  end
+
+  src = ::File.join(tarball.destination, longname || entry.full_name)
+  link src do
+    to target
+    owner tarball.owner || entry.header.uid
+    link_type type
+    action :create
   end
 end
 
 def t_file(tarball, entry, pax, longname)
   pax_handler(pax)
   file_name = longname || entry.full_name
-  Chef::Log.info "Creating file #{longname || entry.full_name}"
-  dir = ::File.dirname(::File.join(tarball.destination, file_name))
+  Chef::Log.info "Creating file #{file_name}"
+  dir = tarball.destination
   t_mkdir(tarball, entry, pax, dir) unless ::File.exist?(dir)
   file ::File.join(tarball.destination, file_name) do
     action :create
@@ -105,14 +119,10 @@ def t_file(tarball, entry, pax, longname)
 end
 
 def on_list?(name, tarball)
-  if tarball.extract_list.is_a?(String)
-    ::File.basename(name).match(Regexp.quote(tarball.extract_list))
-  elsif tarball.extract_list.is_a?(Array)
-    tarball.extract_list.each do |r|
-      return true if ::File.basename(name).match(Regexp.quote(r))
-    end
-    false
+  Array(tarball.extract_list).each do |r|
+    return true if ::File.basename(name).match(Regexp.quote(r))
   end
+  false
 end
 
 def wanted?(name, tarball, type)
@@ -128,7 +138,8 @@ def wanted?(name, tarball, type)
   end
 end
 
-def extraction(tar, tarball)
+def t_extraction(tar, tarball)
+  # pax and longname track extended types that span more than one tar entry
   pax = nil
   longname = nil
   Gem::Package::TarReader.new(tar).each do |ent|
@@ -177,9 +188,9 @@ provides :tarball if self.respond_to?('provides')
 action :extract do
   tarball = new_resource
   Chef::Log.info "TARFILE: #{tarball.source || tarball.name}"
-  tar = topen(tarball.source || tarball.name)
-  tar = zstream(tar)
-  destdir(tarball)
-  extraction(tar, tarball)
+  tar = t_open(tarball.source || tarball.name)
+  tar = t_stream(tar)
+  mkdestdir(tarball)
+  t_extraction(tar, tarball)
   new_resource.updated_by_last_action(true)
 end

@@ -30,13 +30,7 @@ file '/tmp/testing.tgz' do
   action :delete
 end
 
-if platform?('ubuntu')
-  node.set['tar-helper']['testfile'] = 'testing.tar'
-else
-  node.set['tar-helper']['testfile'] = 'blah.tar'
-end
-
-file = node['tar-helper']['testfile']
+file = 'testing.tar'
 
 cookbook_file 'testing.tar' do
   path "/tmp/#{file}"

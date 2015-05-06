@@ -53,14 +53,14 @@ describe 'tarball::test' do
   end
 
   before do
-    ::File.stub(:exists?).and_call_original
-    ::File.stub(:exists?).with('/tmp/testing.tgz').and_return true
-    ::File.stub(:exists?).with('/tmp/testing.tar').and_return true
-    ::File.stub(:open).and_call_original
-    ::File.stub(:open).with('/tmp/testing.tgz', 'rb').and_return \
+    allow(::File).to receive(:exists?).and_call_original
+    allow(::File).to receive(:exists?).with('/tmp/testing.tgz').and_return true
+    allow(::File).to receive(:exists?).with('/tmp/testing.tar').and_return true
+    allow(::File).to receive(:open).and_call_original
+    allow(::File).to receive(:open).with('/tmp/testing.tgz', 'rb').and_return \
       ::File.open(::File.join(::File.dirname(__FILE__),
                               '../files/default/testing.tgz'), 'rb')
-    ::File.stub(:open).with('/tmp/testing.tar', 'rb').and_return \
+    allow(::File).to receive(:open).with('/tmp/testing.tar', 'rb').and_return \
       ::File.open(::File.join(::File.dirname(__FILE__),
                               '../files/default/testing.tar'), 'rb')
   end
