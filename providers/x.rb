@@ -72,27 +72,32 @@ def t_mkdir(tarball, entry, pax, name = nil)
   end
 end
 
+def get_target(tarball, entry, type)
+  if type == :symbolic
+    entry.header.linkname
+  else
+    ::File.join(tarball.destination, entry.header.linkname)
+  end
+end
+
 def t_link(tarball, entry, type, pax, longname)
   pax_handler(pax)
   dir = tarball.destination
   t_mkdir(tarball, entry, pax, dir) unless ::File.exist?(dir)
-  if type == :symbolic
-    target = entry.header.linkname
-  else
-    target = ::File.join(tarball.destination, entry.header.linkname)
-  end
+  target = get_target(tarball, entry, type)
 
   if type == :hard &&
      !(::File.exist?(target) || tarball.created_files.include?(target))
     Chef::Log.debug "Skipping #{entry.full_name}: #{target} not found"
-  else
-    src = ::File.join(tarball.destination, longname || entry.full_name)
-    link src do
-      to target
-      owner tarball.owner || entry.header.uid
-      link_type type
-      action :create
-    end
+    return
+  end
+
+  src = ::File.join(tarball.destination, longname || entry.full_name)
+  link src do
+    to target
+    owner tarball.owner || entry.header.uid
+    link_type type
+    action :create
   end
 end
 
