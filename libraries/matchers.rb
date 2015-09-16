@@ -17,4 +17,8 @@ if defined?(ChefSpec)
   def extract_tarball_x(name)
     ChefSpec::Matchers::ResourceMatcher.new(:tarball_x, :extract, name)
   end
+
+  def extract_tarball(name)
+    ChefSpec::Matchers::ResourceMatcher.new(:tarball, :extract, name)
+  end
 end

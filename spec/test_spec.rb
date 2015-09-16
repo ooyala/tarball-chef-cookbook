@@ -26,8 +26,11 @@ describe 'tarball::test' do
     expect(chef_run).to create_cookbook_file('testing.tar')
   end
 
+  it 'calls tarball' do
+    expect(chef_run).to extract_tarball('/tmp/testing.tgz')
+  end
+
   it 'calls tarball_x' do
-    expect(chef_run).to extract_tarball_x('/tmp/testing.tgz')
     expect(chef_run).to extract_tarball_x('test2')
   end
 
@@ -46,7 +49,7 @@ describe 'tarball::test' do
   let(:chef_run) do
     ChefSpec::SoloRunner.new(
       log_level: :error,
-      step_into: ['tarball_x']
+      step_into: ['tarball', 'tarball_x']
     ).converge(
       described_recipe
     )
