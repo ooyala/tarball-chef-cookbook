@@ -49,7 +49,7 @@ describe 'tarball::test' do
   let(:chef_run) do
     ChefSpec::SoloRunner.new(
       log_level: :error,
-      step_into: ['tarball', 'tarball_x']
+      step_into: %w(tarball tarball_x)
     ).converge(
       described_recipe
     )
