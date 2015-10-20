@@ -92,7 +92,9 @@ def t_link(tarball, entry, type, pax, longname)
     return
   end
 
-  src = ::File.join(tarball.destination, longname || entry.full_name)
+  src = ::File.join(dir, longname || entry.full_name)
+  t_mkdir(tarball, entry, pax, ::File.dirname(src)) \
+      unless ::File.directory?(::File.dirname(src))
   link src do
     to target
     owner tarball.owner || entry.header.uid
@@ -105,9 +107,10 @@ def t_file(tarball, entry, pax, longname)
   pax_handler(pax)
   file_name = longname || entry.full_name
   Chef::Log.info "Creating file #{file_name}"
-  dir = tarball.destination
-  t_mkdir(tarball, entry, pax, dir) unless ::File.exist?(dir)
-  file ::File.join(tarball.destination, file_name) do
+  fqpn = ::File.join(tarball.destination, file_name)
+  t_mkdir(tarball, entry, pax, ::File.dirname(fqpn)) \
+      unless ::File.directory?(::File.dirname(fqpn))
+  file fqpn do
     action :create
     owner tarball.owner || entry.header.uid
     group tarball.group || entry.header.gid
@@ -115,7 +118,7 @@ def t_file(tarball, entry, pax, longname)
     sensitive true
     content entry.read
   end
-  tarball.created_files << ::File.join(tarball.destination, file_name)
+  tarball.created_files << fqpn
 end
 
 def on_list?(name, tarball)
