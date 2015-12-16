@@ -123,7 +123,7 @@ end
 
 def on_list?(name, tarball)
   Array(tarball.extract_list).each do |r|
-    return true if ::File.basename(name).match(Regexp.quote(r))
+    return true if ::File.fnmatch?(r, name)
   end
   false
 end

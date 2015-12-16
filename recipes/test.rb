@@ -42,7 +42,7 @@ tarball_x 'test2' do
   destination '/tmp/testing2'
   owner 'root'
   group 'sys'
-  extract_list ['1', '/.*_to_.*/']
+  extract_list ['**/1', '**/*_to_*']
   action :extract
 end
 
