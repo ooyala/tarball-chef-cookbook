@@ -68,12 +68,13 @@ end
 def t_mkdir(tarball_resource, entry, pax, name = nil)
   pax_handler(pax)
   if name.nil?
-    dir = ::File.join(tarball_resource.destination, entry.full_name)
+    dir = get_tar_entry_path(tarball_resource, entry.full_name)
+    dir = ::File.join(tarball_resource.destination, dir)
     dir = dir.gsub(%r{/$}, '')
   else
     dir = name
   end
-  return if ::File.directory?(dir)
+  return if dir.empty? || ::File.directory?(dir)
   owner = tarball_resource.owner || entry.header.uid
   group = tarball_resource.group || entry.header.gid
   mode = lambda do
@@ -87,8 +88,23 @@ def get_target(tarball_resource, entry, type)
   if type == :symbolic
     entry.header.linkname
   else
-    ::File.join(tarball_resource.destination, entry.header.linkname)
+    target = get_tar_entry_path(tarball_resource, entry.header.linkname)
+    ::File.join(tarball_resource.destination, target)
   end
+end
+
+def get_tar_entry_path(tarball_resource, full_path)
+  if tarball_resource.strip_components
+    paths = Pathname.new(full_path)
+            .each_filename
+            .drop(tarball_resource.strip_components)
+    if paths.empty?
+      full_path = ""
+    else
+      full_path = ::File.join(paths)
+    end
+  end
+  full_path
 end
 
 def t_link(tarball_resource, entry, type, pax, longname)
@@ -103,7 +119,10 @@ def t_link(tarball_resource, entry, type, pax, longname)
     return
   end
 
-  src = ::File.join(dir, longname || entry.full_name)
+  filename = longname || entry.full_name
+  src = get_tar_entry_path(tarball_resource, filename)
+  return if src.empty?
+  src = ::File.join(dir, src)
   t_mkdir(tarball_resource, entry, pax, ::File.dirname(src))
   link src do
     to target
@@ -115,9 +134,11 @@ end
 
 def t_file(tarball_resource, entry, pax, longname)
   pax_handler(pax)
-  file_name = longname || entry.full_name
-  Chef::Log.info "Creating file #{file_name}"
-  fqpn = ::File.join(tarball_resource.destination, file_name)
+  fqpn = longname || entry.full_name
+  fqpn = get_tar_entry_path(tarball_resource, fqpn)
+  return if fqpn.empty?
+  fqpn = ::File.join(tarball_resource.destination, fqpn)
+  Chef::Log.info "Creating file #{fqpn}"
   t_mkdir(tarball_resource, entry, pax, ::File.dirname(fqpn))
   file fqpn do
     action :create
@@ -130,6 +151,13 @@ def t_file(tarball_resource, entry, pax, longname)
   tarball_resource.created_files << fqpn
 end
 
+def exclude?(filename, tarball_resource)
+  Array(tarball_resource.exclude).each do |r|
+    return true if ::File.fnmatch?(r, filename)
+  end
+  false
+end
+
 def on_list?(filename, tarball_resource)
   Array(tarball_resource.extract_list).each do |r|
     return true if ::File.fnmatch?(r, filename)
@@ -138,6 +166,9 @@ def on_list?(filename, tarball_resource)
 end
 
 def wanted?(filename, tarball_resource, type)
+  if tarball_resource.exclude
+    return false if exclude?(filename, tarball_resource)
+  end
   if ::File.exist?(::File.join(tarball_resource.destination, filename)) &&
      tarball_resource.overwrite == false
     false

@@ -13,6 +13,8 @@ Features
 * Automatically handles gzipped archives
 * Can change mode/ownership
 * Can select specific files only
+* Can exclude files
+* Can emulate `--strip-components`
 * Can handle:
   * regular files
   * directories
@@ -52,11 +54,13 @@ end
 
 # I can also use tarball_x "file" do ...
 tarball '/tmp/some_archive.tgz' do
-  destination '/opt/my_app_path'	# Will be created if missing
+  destination '/opt/my_app_path/conf'   # Will be created if missing
   owner 'root'
   group 'root'
-  extract_list [ '*.conf' ]
-  umask 002				# Will be applied to perms in archive
+  extract_list [ 'properties/*.conf' ]  # Will extract all *.conf files found within the properties dir in the tarball
+  exclude [ 'properties/.gitignore' ]   # Will exclude the .gitfile file that got packaged
+  strip_components 1                    # Will strip the first directory (i.e. `properties/`) so that the *.conf files will be placed directly in `/opt/my_app_path/conf`
+  umask 002                             # Will be applied to perms in archive
   action :extract
 end
 ```
