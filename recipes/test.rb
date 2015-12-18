@@ -11,14 +11,14 @@
 # implied.  See the License for the specific language governing
 # permissions and limitations under the License.
 
-include_recipe 'tarball::default'
+file = 'testing.tgz'
 
-cookbook_file 'testing.tgz' do
-  path '/tmp/testing.tgz'
+cookbook_file file do
+  path "/tmp/#{file}"
   action :create
 end
 
-tarball '/tmp/testing.tgz' do
+tarball "/tmp/#{file}" do
   destination '/tmp/testing1'
   owner 'root'
   group 'root'
@@ -26,7 +26,7 @@ tarball '/tmp/testing.tgz' do
   action :extract
 end
 
-file '/tmp/testing.tgz' do
+file "/tmp/#{file}" do
   action :delete
 end
 
@@ -42,8 +42,23 @@ tarball_x 'test2' do
   destination '/tmp/testing2'
   owner 'root'
   group 'sys'
-  extract_list ['1', '/.*_to_.*/']
+  mode '0755'
+  extract_list ['**/1', '**/*_to_*']
   action :extract
+end
+
+tarball_x 'test3 excluding' do
+  source lazy { "/tmp/#{file}" }
+  destination '/tmp/testing3'
+  owner 'root'
+  group 'root'
+  exclude ['**/1', 'testing/a/2', 'testing/**/3', '**/q/**']
+end
+
+tarball_x 'test4 strip_components' do
+  source "/tmp/#{file}"
+  destination '/tmp/testing4'
+  strip_components 2
 end
 
 file 'testing.tar' do
