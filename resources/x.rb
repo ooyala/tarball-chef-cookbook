@@ -27,6 +27,7 @@ attribute :destination, kind_of: String, required: true
 attribute :extract_list, kind_of: [Array, String]
 attribute :owner, kind_of: String
 attribute :group, kind_of: String
+attribute :mode, kind_of: [String, Integer]
 attribute :umask, kind_of: [String, Integer], default: 022
 attribute :overwrite, kind_of: [TrueClass, FalseClass], default: true
 attribute :exclude, kind_of: [Array, String]

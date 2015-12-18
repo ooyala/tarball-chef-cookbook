@@ -11,8 +11,6 @@
 # implied.  See the License for the specific language governing
 # permissions and limitations under the License.
 
-include_recipe 'tarball::default'
-
 file = 'testing.tgz'
 
 cookbook_file file do
@@ -44,6 +42,7 @@ tarball_x 'test2' do
   destination '/tmp/testing2'
   owner 'root'
   group 'sys'
+  mode '0755'
   extract_list ['**/1', '**/*_to_*']
   action :extract
 end

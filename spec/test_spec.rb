@@ -125,7 +125,7 @@ describe 'tarball::test' do
   it 'creates another set of extracted files as expected' do
     %w( testing/a/b/1 ).each do |f|
       expect(chef_run).to create_file("/tmp/testing2/#{f}")
-      expect(chef_run).to create_file("/tmp/testing2/#{f}").with(mode: 0644)
+      expect(chef_run).to create_file("/tmp/testing2/#{f}").with(mode: '0755')
       expect(chef_run).to create_file("/tmp/testing2/#{f}").with(owner: 'root')
       expect(chef_run).to create_file("/tmp/testing2/#{f}").with(group: 'sys')
     end

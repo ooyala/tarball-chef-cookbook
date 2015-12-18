@@ -77,7 +77,7 @@ def t_mkdir(tarball_resource, entry, pax, name = nil)
   return if dir.empty? || ::File.directory?(dir)
   owner = tarball_resource.owner || entry.header.uid
   group = tarball_resource.group || entry.header.gid
-  mode = lambda do
+  mode = tarball_resource.mode || lambda do
     (fix_mode(entry.header.mode) | 0111) & ~tarball_resource.umask.to_i
   end.call
 
@@ -144,7 +144,8 @@ def t_file(tarball_resource, entry, pax, longname)
     action :create
     owner tarball_resource.owner || entry.header.uid
     group tarball_resource.group || entry.header.gid
-    mode fix_mode(entry.header.mode) & ~tarball_resource.umask.to_i
+    mode tarball_resource.mode ||
+      fix_mode(entry.header.mode) & ~tarball_resource.umask.to_i
     sensitive true
     content entry.read
   end

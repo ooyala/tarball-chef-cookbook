@@ -52,18 +52,27 @@ remote_file '/tmp/some_archive.tgz' do
   source 'http://example.com/some_archive.tgz'
 end
 
-# I can also use tarball_x "file" do ...
-tarball '/tmp/some_archive.tgz' do
+# I can use tarball_x "file" do ...
+tarball_x '/tmp/some_archive.tgz' do
   destination '/opt/my_app_path/conf'   # Will be created if missing
   owner 'root'
   group 'root'
   extract_list [ 'properties/*.conf' ]  # Will extract all *.conf files found within the properties dir in the tarball
-  exclude [ 'properties/.gitignore' ]   # Will exclude the .gitfile file that got packaged
   strip_components 1                    # Will strip the first directory (i.e. `properties/`) so that the *.conf files will be placed directly in `/opt/my_app_path/conf`
-  umask 002                             # Will be applied to perms in archive
+  mode '0644'                           # Will apply these permissions to all files extracted (overwrites the permissions within the tarball)
   action :extract
 end
+
+# I can also just use tarball  "file" do ...
+tarball '/tmp/some_other_archive.tar' do
+  destination '/opt/somewhere/else'
+  exclude [ '.gitignore' ]              # Will extract everything, but exclude the .gitfile file that got packaged
+  umask 002                             # Will apply the umask to perms in archive, while retaining their existing permissions within the tarball
+  action :extract
+end
+
 ```
+
 
 It will throw exceptions derived form StandardError in most cases
 (permissions errors, etc.), so you may want to wrap the block in a
