@@ -99,7 +99,7 @@ def get_tar_entry_path(tarball_resource, full_path)
             .each_filename
             .drop(tarball_resource.strip_components)
     if paths.empty?
-      full_path = ""
+      full_path = ''
     else
       full_path = ::File.join(paths)
     end

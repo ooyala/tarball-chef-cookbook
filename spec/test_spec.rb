@@ -280,10 +280,11 @@ describe 'tarball::test' do
     end
 
     {
-      "b/hardlink_to_1" => "b/1"
+      'b/hardlink_to_1' => 'b/1'
     }.each_pair do |l, t|
-      expect(chef_run).to create_link("#{dir}/#{l}").with_link_type(:hard).with_to("#{dir}/#{t}")
+      expect(chef_run).to create_link("#{dir}/#{l}")
+        .with_link_type(:hard)
+        .with_to("#{dir}/#{t}")
     end
-
   end
 end
